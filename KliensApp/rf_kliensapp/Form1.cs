@@ -17,7 +17,7 @@ namespace rf_kliensapp
     {
         private const string baseUrl = "http://20.234.113.211:8094";
         //generate new api key for use. 
-        private const string key = "paste-in-key";
+        private const string key = "1-9e93f163-adec-4411-ae89-e022399605cf";
 
         public Form1()
         {
@@ -30,14 +30,14 @@ namespace rf_kliensapp
             {
                 ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
                 string productId = selectedItem.Bvin;
-                DeleteProduct(productId);
+                DeleteProduct(productId, true);
             }
             else
             {
                 MessageBox.Show("Please select a product to delete.");
             }
         }
-        private async void DeleteProduct(string productId)
+        private async void DeleteProduct(string productId, bool isVerbose)
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
@@ -45,23 +45,30 @@ namespace rf_kliensapp
             string deleteEndpointUrl = $"/DesktopModules/Hotcakes/API/rest/v1/products/{productId}?key={key}";
             HttpResponseMessage response = client.DeleteAsync(deleteEndpointUrl).Result;
 
-            if (response.IsSuccessStatusCode)
+            if (response.IsSuccessStatusCode && isVerbose)
             {
-                MessageBox.Show("Product deleted successfully");
                 GetProducts();
+                MessageBox.Show("Product deleted successfully");
                 btnDeleteProduct.Text = "Please Choose a Product to Delete";
                 btnDeleteProduct.BackColor = Color.White;
             }
+            else if (response.IsSuccessStatusCode && !isVerbose) { }
             else
             {
                 // Handle error gracefully
                 string errorContent = await response.Content.ReadAsStringAsync();
-
                 // Display error message (e.g., MessageBox) or log the error
-                MessageBox.Show($"Failed to delete product. Error: {errorContent}");
+                if (isVerbose)
+                {
+                    MessageBox.Show($"Failed to delete product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                }
+                else
+                {
+                    MessageBox.Show($"Failed to update product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                }
             }
         }
-        private void GetProducts()
+        private async void GetProducts()
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
@@ -91,7 +98,8 @@ namespace rf_kliensapp
             }
             else
             {
-                productsListView.Items.Add("Error loading products");
+                string errorContent = await response.Content.ReadAsStringAsync();
+                productsListView.Items.Add($"Error loading products.  Please contact the developers of the application and show this Error Message: {errorContent} ");
             }
         }
         private void productsListView_SelectedIndexChanged(object sender, EventArgs e)
@@ -109,10 +117,10 @@ namespace rf_kliensapp
         {
             string name = txtProductName.Text;
             string price = txtProductPrice.Text;
-            AddProduct(name, price);
+            AddProduct(name, price, true);
 
         }
-        private async void AddProduct(string name, string price)
+        private async void AddProduct(string name, string price, bool isVerbose)
         {
             HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
@@ -132,27 +140,53 @@ namespace rf_kliensapp
                         CustomProperties = new List<CustomProperty>(),
                         ShippingDetails = new ShippingDetails(),
                         CreationDateUtc = DateTime.Now,
+                        UrlSlug = sku,
                         MinimumQty = 1,
                         IsAvailableForSale = true,
                         Tabs = new List<Tab>(),
-                        StoreId = 1
+                        StoreId = 1,
+                        ImageFileSmallAlternateText = name + " " + name,
+                        ImageFileMediumAlternateText = name + " " + name,
+
                     };
 
                     var jsonContent = JsonConvert.SerializeObject(product);
                     var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
                     HttpResponseMessage response = await client.PostAsync(addProductEndpointUrl, content);
 
-                    if (response.IsSuccessStatusCode)
+                    if (response.IsSuccessStatusCode && isVerbose)
                     {
+                        GetProducts();
                         buttonAddProduct.BackColor = Color.LimeGreen;
                         buttonAddProduct.Text = name + " has been added!";
                         MessageBox.Show("Product added successfully!");
-                        GetProducts();
+                    }
+                    else if (response.IsSuccessStatusCode && !isVerbose)
+                    {
+                        if (response.IsSuccessStatusCode)
+                        {
+                            GetProducts();
+                            buttonUpdateProduct.BackColor = Color.LimeGreen;
+                            buttonUpdateProduct.Text = " Update successful!";
+                            MessageBox.Show("Product updated successfully!");
+                        }
+                        else
+                        {
+                            string errorContent = await response.Content.ReadAsStringAsync();
+                            MessageBox.Show($"Failed to update product. Please contact the developers of the application and show this Error Message: {errorContent}");
+                        }
                     }
                     else
                     {
                         string errorContent = await response.Content.ReadAsStringAsync();
-                        MessageBox.Show($"Failed to add product. Error: {errorContent}");
+                        if (isVerbose)
+                        {
+                            MessageBox.Show($"Failed to add product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Failed to update product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                        }
                     }
                 }
             }
@@ -176,6 +210,7 @@ namespace rf_kliensapp
                 }
             }
         }
+
         bool IsValidProductName(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -232,60 +267,31 @@ namespace rf_kliensapp
                     var response = await client.GetAsync(updateProductEndpointUrl);
                     if (!response.IsSuccessStatusCode)
                     {
-                        MessageBox.Show($"Failed to fetch product for update: {response.StatusCode}");
+                        MessageBox.Show($"Failed to fetch product for update.  Please contact the developers of the application and show this Error Message: {response.StatusCode}");
                         return;
                     }
 
                     var contentString = response.Content.ReadAsStringAsync().Result;
                     var productToUpdate = JsonConvert.DeserializeObject<ProductResponse>(contentString);
-                    richTextBox1.Text = contentString;
 
-                    //// 3. Modify the Product
-                    //productToUpdate.Content.ProductName = name;
-                    //productToUpdate.Content.Sku = sku;
-                    //productToUpdate.Content.SitePrice = double.Parse(price);
-                    //productToUpdate.Content.CreationDateUtc = DateTime.Now;
-                    //productToUpdate.Content.UrlSlug = sku;
-                    //productToUpdate.Content.ImageFileSmallAlternateText = name + " " + name;
-                    //productToUpdate.Content.ImageFileMediumAlternateText = name + " " +name;
+                    // 3. Modify the Product
+                    productToUpdate.Content.ProductName = name;
+                    productToUpdate.Content.Sku = sku;
+                    productToUpdate.Content.SitePrice = double.Parse(price);
+                    productToUpdate.Content.CreationDateUtc = DateTime.Now;
+                    productToUpdate.Content.UrlSlug = sku;
+                    productToUpdate.Content.ImageFileSmallAlternateText = name + " " + name;
+                    productToUpdate.Content.ImageFileMediumAlternateText = name + " " + name;
 
-                     
 
                     // 4. Serialize and Send Update
                     var jsonContent = JsonConvert.SerializeObject(productToUpdate);
-                    var content = new StringContent(contentString, Encoding.UTF8, "application/json");
-                    richTextBox2.Text = jsonContent;
-                    response = await client.PostAsync(updateProductEndpointUrl, content);
 
-                    // 5. Handle the update response (similar to your AddProduct handling)
-                    if (response.IsSuccessStatusCode)
-                    {
-                        MessageBox.Show("Product updated successfully");
-                        richTextBox1.Text = response.ToString();
-                        GetProducts();
-                    }
-                    else
-                    {
-                        MessageBox.Show("bruh" + response);
-                        richTextBox1.Text = response.ToString();
-                    }
+                    DeleteProduct(bvin, false);
+                    AddProduct(name, price, false);
+                    GetProducts();
 
-                    //var jsonContent = JsonConvert.SerializeObject(product);
-                    //var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                    //HttpResponseMessage response = await client.PostAsync(updateProductEndpointUrl, content);
 
-                    //if (response.IsSuccessStatusCode)
-                    //{
-                    //    buttonAddProduct.BackColor = Color.LimeGreen;
-                    //    buttonAddProduct.Text = name + " has been added!";
-                    //    MessageBox.Show("Product added successfully!");
-                    //    GetProducts();
-                    //}
-                    //else
-                    //{
-                    //    string errorContent = await response.Content.ReadAsStringAsync();
-                    //    MessageBox.Show($"Failed to add product. Error: {errorContent}");
-                    //}
                 }
             }
             else

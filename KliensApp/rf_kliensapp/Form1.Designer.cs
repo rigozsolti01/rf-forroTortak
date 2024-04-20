@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             buttonAddProduct = new Button();
             txtProductName = new TextBox();
             btnDeleteProduct = new Button();
@@ -47,8 +48,6 @@
             updateProductPrice = new TextBox();
             updateProductName = new TextBox();
             buttonUpdateProduct = new Button();
-            richTextBox1 = new RichTextBox();
-            richTextBox2 = new RichTextBox();
             SuspendLayout();
             // 
             // buttonAddProduct
@@ -117,6 +116,7 @@
             // label3
             // 
             label3.AutoSize = true;
+            label3.BackColor = Color.White;
             label3.Font = new Font("Segoe UI", 28F, FontStyle.Regular, GraphicsUnit.Point);
             label3.Location = new Point(23, 60);
             label3.Name = "label3";
@@ -225,29 +225,12 @@
             buttonUpdateProduct.UseVisualStyleBackColor = false;
             buttonUpdateProduct.Click += btnUpdateProduct_Click;
             // 
-            // richTextBox1
-            // 
-            richTextBox1.Location = new Point(868, 290);
-            richTextBox1.Name = "richTextBox1";
-            richTextBox1.Size = new Size(422, 291);
-            richTextBox1.TabIndex = 23;
-            richTextBox1.Text = "";
-            // 
-            // richTextBox2
-            // 
-            richTextBox2.Location = new Point(1326, 290);
-            richTextBox2.Name = "richTextBox2";
-            richTextBox2.Size = new Size(422, 291);
-            richTextBox2.TabIndex = 24;
-            richTextBox2.Text = "";
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1967, 725);
-            Controls.Add(richTextBox2);
-            Controls.Add(richTextBox1);
+            BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
+            ClientSize = new Size(1341, 583);
             Controls.Add(buttonUpdateProduct);
             Controls.Add(updateProductName);
             Controls.Add(updateProductPrice);
@@ -294,7 +277,5 @@
         private TextBox updateProductPrice;
         private TextBox updateProductName;
         private Button buttonUpdateProduct;
-        private RichTextBox richTextBox1;
-        private RichTextBox richTextBox2;
     }
 }
