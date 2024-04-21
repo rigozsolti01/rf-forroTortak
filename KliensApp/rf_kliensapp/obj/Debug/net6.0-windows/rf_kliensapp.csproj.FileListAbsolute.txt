@@ -44,3 +44,4 @@ C:\Users\vityaatya\Source\Repos\rf-forroTortak\KliensApp\rf_kliensapp\obj\Debug\
 C:\Users\vityaatya\Source\Repos\rf-forroTortak\KliensApp\rf_kliensapp\obj\Debug\net6.0-windows\rf_kliensapp.pdb
 C:\Users\vityaatya\Source\Repos\rf-forroTortak\KliensApp\rf_kliensapp\obj\Debug\net6.0-windows\rf_kliensapp.genruntimeconfig.cache
 C:\Users\vityaatya\Source\Repos\rf-forroTortak\KliensApp\rf_kliensapp\obj\Debug\net6.0-windows\ref\rf_kliensapp.dll
+C:\Users\vityaatya\Source\Repos\rf-forroTortak\KliensApp\rf_kliensapp\obj\Debug\net6.0-windows\rf_kliensapp.Properties.Resources.resources

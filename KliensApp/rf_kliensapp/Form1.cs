@@ -17,7 +17,7 @@ namespace rf_kliensapp
     {
         private const string baseUrl = "http://20.234.113.211:8094";
         //generate new api key for use. 
-        private const string key = "1-9e93f163-adec-4411-ae89-e022399605cf";
+        private const string key = "please-insert-key";
 
         public Form1()
         {
@@ -28,9 +28,13 @@ namespace rf_kliensapp
         {
             if (productsListView.SelectedItems.Count > 0)
             {
-                ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
-                string productId = selectedItem.Bvin;
-                DeleteProduct(productId, true);
+                DialogResult dr = MessageBox.Show("Are you sure you want to delete the selected domain?", "Delete?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (dr == DialogResult.Yes)
+                {
+                    ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
+                    string productId = selectedItem.Bvin;
+                    DeleteProduct(productId, true);
+                }
             }
             else
             {
@@ -50,7 +54,6 @@ namespace rf_kliensapp
                 GetProducts();
                 MessageBox.Show("Product deleted successfully");
                 btnDeleteProduct.Text = "Please Choose a Product to Delete";
-                btnDeleteProduct.BackColor = Color.White;
             }
             else if (response.IsSuccessStatusCode && !isVerbose) { }
             else
@@ -107,7 +110,6 @@ namespace rf_kliensapp
             ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
             string productName = selectedItem.ProductName;
             btnDeleteProduct.Text = "Delete " + productName;
-            btnDeleteProduct.BackColor = Color.IndianRed;
 
             //Update Product set data
             currentProductName.Text = productName;
@@ -157,7 +159,6 @@ namespace rf_kliensapp
                     if (response.IsSuccessStatusCode && isVerbose)
                     {
                         GetProducts();
-                        buttonAddProduct.BackColor = Color.LimeGreen;
                         buttonAddProduct.Text = name + " has been added!";
                         MessageBox.Show("Product added successfully!");
                     }
@@ -166,8 +167,7 @@ namespace rf_kliensapp
                         if (response.IsSuccessStatusCode)
                         {
                             GetProducts();
-                            buttonUpdateProduct.BackColor = Color.LimeGreen;
-                            buttonUpdateProduct.Text = " Update successful!";
+                            buttonUpdateProduct.Text = "Update successful!";
                             MessageBox.Show("Product updated successfully!");
                         }
                         else
@@ -192,7 +192,6 @@ namespace rf_kliensapp
             }
             else
             {
-                buttonAddProduct.BackColor = Color.IndianRed;
                 buttonAddProduct.Text = "Please fix formatting issues!";
                 if (!IsValidProductName(name) && (!IsValidPrice(price)))
                 {
@@ -238,16 +237,18 @@ namespace rf_kliensapp
 
         private void btnUpdateProduct_Click(object sender, EventArgs e)
         {
-            string name = updateProductName.Text;
-            string price = updateProductPrice.Text;
-            ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
-            string selectedBvin = selectedItem.Bvin;
-            if (string.IsNullOrEmpty(selectedBvin))
+            if (productsListView.SelectedItems.Count > 0)
             {
-                MessageBox.Show("Please choose a product from the list");
-                return;
+                string name = updateProductName.Text;
+                string price = updateProductPrice.Text;
+                ProductListItem selectedItem = (ProductListItem)productsListView.SelectedItems[0];
+                string selectedBvin = selectedItem.Bvin;
+                UpdateProduct(name, price, selectedBvin);
             }
-            UpdateProduct(name, price, selectedBvin);
+            else
+            {
+                MessageBox.Show("Please select a product to update.");
+            }
         }
         private async void UpdateProduct(string name, string price, string bvin)
         {
@@ -260,43 +261,43 @@ namespace rf_kliensapp
             if (IsValidProductName(name) && IsValidPrice(price))
             {
                 {
-                    // 1. Get the existing product by its BVIN 
-                    updateProductEndpointUrl = $"/DesktopModules/Hotcakes/API/rest/v1/products/{bvin}?key={key}";
-
-                    // 2. Retrieve the existing product details 
-                    var response = await client.GetAsync(updateProductEndpointUrl);
-                    if (!response.IsSuccessStatusCode)
+                    DialogResult dr = MessageBox.Show("Are you sure you want to update the selected domain?", "Update?", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (dr == DialogResult.Yes)
                     {
-                        MessageBox.Show($"Failed to fetch product for update.  Please contact the developers of the application and show this Error Message: {response.StatusCode}");
-                        return;
+                        // 1. Get the existing product by its BVIN 
+                        updateProductEndpointUrl = $"/DesktopModules/Hotcakes/API/rest/v1/products/{bvin}?key={key}";
+
+                        // 2. Retrieve the existing product details 
+                        var response = await client.GetAsync(updateProductEndpointUrl);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            MessageBox.Show($"Failed to fetch product for update.  Please contact the developers of the application and show this Error Message: {response.StatusCode}");
+                            return;
+                        }
+
+                        var contentString = response.Content.ReadAsStringAsync().Result;
+                        var productToUpdate = JsonConvert.DeserializeObject<ProductResponse>(contentString);
+
+                        // 3. Modify the Product
+                        productToUpdate.Content.ProductName = name;
+                        productToUpdate.Content.Sku = sku;
+                        productToUpdate.Content.SitePrice = double.Parse(price);
+                        productToUpdate.Content.CreationDateUtc = DateTime.Now;
+                        productToUpdate.Content.UrlSlug = sku;
+                        productToUpdate.Content.ImageFileSmallAlternateText = name + " " + name;
+                        productToUpdate.Content.ImageFileMediumAlternateText = name + " " + name;
+
+
+                        // 4. Serialize and Send Update
+                        var jsonContent = JsonConvert.SerializeObject(productToUpdate);
+                        DeleteProduct(bvin, false);
+                        AddProduct(name, price, false);
+                        GetProducts();
                     }
-
-                    var contentString = response.Content.ReadAsStringAsync().Result;
-                    var productToUpdate = JsonConvert.DeserializeObject<ProductResponse>(contentString);
-
-                    // 3. Modify the Product
-                    productToUpdate.Content.ProductName = name;
-                    productToUpdate.Content.Sku = sku;
-                    productToUpdate.Content.SitePrice = double.Parse(price);
-                    productToUpdate.Content.CreationDateUtc = DateTime.Now;
-                    productToUpdate.Content.UrlSlug = sku;
-                    productToUpdate.Content.ImageFileSmallAlternateText = name + " " + name;
-                    productToUpdate.Content.ImageFileMediumAlternateText = name + " " + name;
-
-
-                    // 4. Serialize and Send Update
-                    var jsonContent = JsonConvert.SerializeObject(productToUpdate);
-
-                    DeleteProduct(bvin, false);
-                    AddProduct(name, price, false);
-                    GetProducts();
-
-
                 }
             }
             else
             {
-                buttonUpdateProduct.BackColor = Color.IndianRed;
                 buttonUpdateProduct.Text = "Please fix formatting issues!";
                 if (!IsValidProductName(name) && (!IsValidPrice(price)))
                 {
