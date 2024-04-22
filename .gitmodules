@@ -1,0 +1,6 @@
+[submodule "rf-kliens_app"]
+	path = rf-kliens_app
+	url = https://github.com/rigozsolti01/rf-kliens_app.git
+[submodule "rf-dnn_module"]
+	path = rf-dnn_module
+	url = https://github.com/rigozsolti01/rf-dnn_module.git
