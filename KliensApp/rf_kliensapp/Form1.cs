@@ -236,7 +236,7 @@ namespace rf_kliensapp
             // Try parsing the price into a double
             double price;
             // Checking if the double is in the correct format: (15.23)
-            string pattern = @"^\d+(\.\d+)?$";
+            string pattern = @"^\d+(\,\d+)?$";
             return double.TryParse(priceString, out price) && Regex.IsMatch(priceString, pattern);
         }
 
