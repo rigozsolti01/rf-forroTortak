@@ -124,52 +124,93 @@ namespace rf_kliensapp
         }
         public async Task<bool> AddProduct(string name, string price, bool isVerbose)
         {
-            if (!IsValidProductName(name) || !IsValidPrice(price))
-            {
-                MessageBox.Show("Product name or price is invalid. Please check and try again.");
-                return false;
-            }
-
-            var client = new HttpClient();
+            HttpClient client = new HttpClient();
             client.BaseAddress = new Uri(baseUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            string addProductEndpointUrl = $"/DesktopModules/Hotcakes/API/rest/v1/products?key={key}";
+            string sku = name.Replace(".", "");
 
-            var product = new Product()
+            if (IsValidProductName(name) && IsValidPrice(price))
             {
-                ProductName = name,
-                Sku = name.Replace(".", ""),
-                SitePrice = double.Parse(price),
-                InventoryMode = 100,
-                CustomProperties = new List<CustomProperty>(),
-                ShippingDetails = new ShippingDetails(),
-                CreationDateUtc = DateTime.Now,
-                UrlSlug = name.Replace(".", ""),
-                MinimumQty = 1,
-                IsAvailableForSale = true,
-                Tabs = new List<Tab>(),
-                StoreId = 1,
-                ImageFileSmallAlternateText = name + " " + name,
-                ImageFileMediumAlternateText = name + " " + name,
-            };
-
-            var jsonContent = JsonConvert.SerializeObject(product);
-            var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-            var addProductEndpointUrl = $"/DesktopModules/Hotcakes/API/rest/v1/products?key={key}";
-
-            HttpResponseMessage response = await client.PostAsync(addProductEndpointUrl, content);
-            if (response.IsSuccessStatusCode)
-            {
-                if (isVerbose)
                 {
-                    MessageBox.Show("Product added successfully!");
+                    var product = new Product()
+                    {
+                        ProductName = name,
+                        Sku = sku,
+                        SitePrice = double.Parse(price),
+                        InventoryMode = 100,
+                        CustomProperties = new List<CustomProperty>(),
+                        ShippingDetails = new ShippingDetails(),
+                        CreationDateUtc = DateTime.Now,
+                        UrlSlug = sku,
+                        MinimumQty = 1,
+                        IsAvailableForSale = true,
+                        Tabs = new List<Tab>(),
+                        StoreId = 1,
+                        ImageFileSmallAlternateText = name + " " + name,
+                        ImageFileMediumAlternateText = name + " " + name,
+
+                    };
+
+                    var jsonContent = JsonConvert.SerializeObject(product);
+                    var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+                    HttpResponseMessage response = await client.PostAsync(addProductEndpointUrl, content);
+
+                    if (response.IsSuccessStatusCode && isVerbose)
+                    {
+                        GetProducts();
+                        buttonAddProduct.Text = name + " has been added!";
+                        MessageBox.Show("Product added successfully!");
+                        return true;
+                    }
+                    else if (response.IsSuccessStatusCode && !isVerbose)
+                    {
+                        if (response.IsSuccessStatusCode)
+                        {
+                            GetProducts();
+                            buttonUpdateProduct.Text = "Update successful!";
+                            MessageBox.Show("Product updated successfully!");
+                            return true;
+                        }
+                        else
+                        {
+                            string errorContent = await response.Content.ReadAsStringAsync();
+                            MessageBox.Show($"Failed to update product. Please contact the developers of the application and show this Error Message: {errorContent}");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        string errorContent = await response.Content.ReadAsStringAsync();
+                        if (isVerbose)
+                        {
+                            MessageBox.Show($"Failed to add product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Failed to update product. Please contact the developers of the application and show this Error Message: {errorContent} ");
+                        }
+                        return false;
+                    }
                 }
-                GetProducts(); // Refresh the product list
-                return true;
             }
             else
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                MessageBox.Show($"Failed to add product: {errorContent}");
+                buttonAddProduct.Text = "Please fix formatting issues!";
+                if (!IsValidProductName(name) && (!IsValidPrice(price)))
+                {
+                    MessageBox.Show("Product name and Price is not valid. Product name should have one dot and not be empty. (domain) Price should be a valid number (e.g: 15.24)");
+                }
+                // Show error messages to the user if the regex checks don't pass.
+                else if (!IsValidProductName(name))
+                {
+                    MessageBox.Show("Product name is not valid. It should have one dot and not be empty. (domain)");
+                }
+
+                else if (!IsValidPrice(price))
+                {
+                    MessageBox.Show("Price is not valid. Please enter a valid double value. (E.g: 15.22)");
+                }
                 return false;
             }
         }
