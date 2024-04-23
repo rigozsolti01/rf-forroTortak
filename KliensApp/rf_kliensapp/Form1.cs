@@ -199,7 +199,7 @@ namespace rf_kliensapp
                 buttonAddProduct.Text = "Please fix formatting issues!";
                 if (!IsValidProductName(name) && (!IsValidPrice(price)))
                 {
-                    MessageBox.Show("Product name and Price is not valid. Product name should have one dot and not be empty. (domain) Price should be a valid number (e.g: 15.24)");
+                    MessageBox.Show("Product name and Price is not valid. Product name should have one dot and not be empty. (domain) Price should be a valid number (e.g: 15,24)");
                 }
                 // Show error messages to the user if the regex checks don't pass.
                 else if (!IsValidProductName(name))
@@ -209,7 +209,7 @@ namespace rf_kliensapp
 
                 else if (!IsValidPrice(price))
                 {
-                    MessageBox.Show("Price is not valid. Please enter a valid double value. (E.g: 15.22)");
+                    MessageBox.Show("Price is not valid. Please enter a valid double value. (E.g: 15,22)");
                 }
                 return false;
             }
@@ -235,7 +235,7 @@ namespace rf_kliensapp
 
             // Try parsing the price into a double
             double price;
-            // Checking if the double is in the correct format: (15.23)
+            // Checking if the double is in the correct format: (15,23)
             string pattern = @"^\d+(\,\d+)?$";
             return double.TryParse(priceString, out price) && Regex.IsMatch(priceString, pattern);
         }
